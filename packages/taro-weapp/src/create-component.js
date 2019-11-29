@@ -1,9 +1,8 @@
 import { getCurrentPageUrl } from '@tarojs/utils'
-import { commitAttachRef, detachAllRef, Current } from '@tarojs/taro'
-import { isEmptyObject, isFunction } from './util'
-import { mountComponent } from './lifecycle'
+import { commitAttachRef, detachAllRef, Current, eventCenter } from '@tarojs/taro'
+import { isEmptyObject, isFunction, isArray } from './util'
+import { mountComponent, updateComponent } from './lifecycle'
 import { cacheDataSet, cacheDataGet, cacheDataHas } from './data-cache'
-import { updateComponent } from './lifecycle'
 import nextTick from './next-tick'
 import propsManager from './propsManager'
 
@@ -38,8 +37,23 @@ function bindProperties (weappComponentConf, ComponentClass, isPage) {
   weappComponentConf.properties.compid = {
     type: null,
     value: null,
-    observer () {
+    observer (newVal, oldVal) {
       initComponent.apply(this, [ComponentClass, isPage])
+      if (oldVal && oldVal !== newVal) {
+        const { extraProps } = this.data
+        const component = this.$component
+        propsManager.observers[newVal] = {
+          component,
+          ComponentClass: component.constructor
+        }
+        const nextProps = filterProps(component.constructor.defaultProps, propsManager.map[newVal], component.props, extraProps || null)
+        this.$component.nextProps = nextProps
+        nextTick(() => {
+          this.$component._unsafeCallUpdate = true
+          updateComponent(this.$component)
+          this.$component._unsafeCallUpdate = false
+        })
+      }
     }
   }
   weappComponentConf.properties.extraProps = {
@@ -50,7 +64,7 @@ function bindProperties (weappComponentConf, ComponentClass, isPage) {
       if (!this.$component || !this.$component.__isReady) return
 
       const nextProps = filterProps(ComponentClass.defaultProps, {}, this.$component.props, this.data.extraProps)
-      this.$component.props = nextProps
+      this.$component.nextProps = nextProps
       nextTick(() => {
         this.$component._unsafeCallUpdate = true
         updateComponent(this.$component)
@@ -319,6 +333,7 @@ function createComponent (ComponentClass, isPage) {
     created (options = {}) {
       if (isPage && cacheDataHas(preloadInitedComponent)) {
         this.$component = cacheDataGet(preloadInitedComponent, true)
+        this.$component.$componentType = 'PAGE'
       } else {
         this.$component = new ComponentClass({}, isPage)
       }
@@ -369,6 +384,10 @@ function createComponent (ComponentClass, isPage) {
           hook.cleanup()
         }
       })
+      const events = component.$$renderPropsEvents
+      if (isArray(events)) {
+        events.forEach(e => eventCenter.off(e))
+      }
     }
   }
   if (isPage) {

@@ -25,7 +25,7 @@ title: Hooks
 在 Taro 中使用 Hooks API 很简单，只需要从 `@tarojs/taro` 中引入即可。
 
 ```javascript
-import { useEffect, useLayoutEffect, useReducer, useState, useRef, useCallback, useMemo } from '@tarojs/taro'
+import { useEffect, useLayoutEffect, useReducer, useState, useContext, useRef, useCallback, useMemo } from '@tarojs/taro'
 ```
 
 ### `useState`
@@ -360,6 +360,122 @@ const value = useContext(MyContext)
 
 > 如果你在接触 Hook 前已经对 context API 比较熟悉，那应该可以理解，`useContext(MyContext)` 相当于 class 组件中的 `static contextType = MyContext` 或者 <MyContext.Consumer>。
 > `useContext(MyContext)` 只是让你能够读取 context 的值以及订阅 context 的变化。你仍然需要在上层组件树中使用 <MyContext.Provider> 来为下层组件提供 context。
+
+### `useDidShow`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useDidShow(() => {
+  console.log('componentDidShow')
+})
+```
+
+`useDidShow` 是 Taro 专有的 Hook，等同于 `componentDidShow` 页面生命周期钩子
+
+### `useDidHide`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useDidHide(() => {
+  console.log('componentDidHide')
+})
+```
+
+`useDidHide` 是 Taro 专有的 Hook，等同于 `componentDidHide` 页面生命周期钩子
+
+### `usePullDownRefresh`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+usePullDownRefresh(() => {
+  console.log('onPullDownRefresh')
+})
+```
+
+`usePullDownRefresh` 是 Taro 专有的 Hook，等同于 `onPullDownRefresh` 页面生命周期钩子
+
+### `useReachBottom`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useReachBottom(() => {
+  console.log('onReachBottom')
+})
+```
+
+`useReachBottom` 是 Taro 专有的 Hook，等同于 `onReachBottom` 页面生命周期钩子
+
+### `usePageScroll`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+usePageScroll(res => {
+  console.log(res.scrollTop)
+})
+```
+
+`usePageScroll` 是 Taro 专有的 Hook，等同于 `onPageScroll` 页面生命周期钩子
+
+### `useResize`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useResize(res => {
+  console.log(res.size.windowWidth)
+  console.log(res.size.windowHeight)
+})
+```
+
+`useResize` 是 Taro 专有的 Hook，等同于 `onResize` 页面生命周期钩子
+
+### `useShareAppMessage`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useShareAppMessage(res => {
+  if (res.from === 'button') {
+    // 来自页面内转发按钮
+    console.log(res.target)
+  }
+  return {
+    title: '自定义转发标题',
+    path: '/page/user?id=123'
+  }
+})
+```
+
+`useShareAppMessage` 是 Taro 专有的 Hook，等同于 `onShareAppMessage` 页面生命周期钩子
+
+### `useTabItemTap`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+useTabItemTap(item => {
+  console.log(item.index)
+  console.log(item.pagePath)
+  console.log(item.text)
+})
+```
+
+`useTabItemTap` 是 Taro 专有的 Hook，等同于 `onTabItemTap` 页面生命周期钩子
+
+### `useRouter`
+
+> 自 `1.3.14` 开始支持
+
+```jsx
+const router = useRouter() // { path: '', params: { ... } }
+```
+
+`useRouter` 是 Taro 专有的 Hook，等同于页面为类时的 `this.$router`
 
 ## 页面及组件中相关属性设置
 

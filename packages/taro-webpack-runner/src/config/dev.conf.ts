@@ -1,20 +1,20 @@
-import * as path from 'path';
+import * as path from 'path'
+import { get, mapValues, merge } from 'lodash'
 
-import { addLeadingSlash, addTrailingSlash } from '../util';
+import { addLeadingSlash, addTrailingSlash } from '../util'
 import {
   getCopyWebpackPlugin,
   getDefinePlugin,
   getDevtool,
-  getEntry,
   getHotModuleReplacementPlugin,
   getHtmlWebpackPlugin,
   getMiniCssExtractPlugin,
   getModule,
   getOutput,
   processEnvOption
-} from '../util/chain';
-import { BuildConfig } from '../util/types';
-import getBaseChain from './base.conf';
+} from '../util/chain'
+import { BuildConfig } from '../util/types'
+import getBaseChain from './base.conf'
 
 const emptyObj = {}
 
@@ -30,12 +30,14 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     publicPath = '',
     staticDirectory = 'static',
     chunkDirectory = 'chunk',
+    router = emptyObj,
 
     designWidth = 750,
     deviceRatio,
     enableSourceMap = true,
+    sourceMapType,
     enableExtract = false,
-    
+
     defineConstants = emptyObj,
     env = emptyObj,
     styleLoaderOption = emptyObj,
@@ -46,7 +48,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     mediaUrlLoaderOption = emptyObj,
     fontUrlLoaderOption = emptyObj,
     imageUrlLoaderOption = emptyObj,
-    
+
     miniCssExtractPluginOption = emptyObj,
     esnextModules = [],
 
@@ -57,6 +59,8 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
   } = config
 
   const plugin = {} as any
+
+  const isMultiRouterMode = get(router, 'mode') === 'multi'
 
   if (enableExtract) {
     plugin.miniCssExtractPlugin = getMiniCssExtractPlugin([{
@@ -69,10 +73,20 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     plugin.copyWebpackPlugin = getCopyWebpackPlugin({ copy, appPath })
   }
 
-  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
-    filename: 'index.html',
-    template: path.join(appPath, sourceRoot, 'index.html')
-  }])
+  if (isMultiRouterMode) {
+    merge(plugin, mapValues(entry, (filePath, entryName) => {
+      return getHtmlWebpackPlugin([{
+        filename: `${entryName}.html`,
+        template: path.join(appPath, sourceRoot, 'index.html'),
+        chunks: [entryName]
+      }])
+    }))
+  } else {
+    plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
+      filename: 'index.html',
+      template: path.join(appPath, sourceRoot, 'index.html')
+    }])
+  }
   plugin.definePlugin = getDefinePlugin([processEnvOption(env), defineConstants])
   plugin.hotModuleReplacementPlugin = getHotModuleReplacementPlugin()
 
@@ -80,8 +94,8 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
 
   chain.merge({
     mode,
-    devtool: getDevtool([enableSourceMap]),
-    entry: getEntry(entry),
+    devtool: getDevtool({ enableSourceMap, sourceMapType }),
+    entry,
     output: getOutput(appPath, [{
       outputRoot,
       publicPath: addLeadingSlash(addTrailingSlash(publicPath)),
@@ -93,7 +107,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       deviceRatio,
       enableExtract,
       enableSourceMap,
-  
+
       styleLoaderOption,
       cssLoaderOption,
       lessLoaderOption,
@@ -103,7 +117,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       imageUrlLoaderOption,
       mediaUrlLoaderOption,
       esnextModules,
-  
+
       module,
       plugins,
       staticDirectory

@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { get, mapValues, merge } from 'lodash'
 
 import { addTrailingSlash, emptyObj } from '../util';
 import {
@@ -6,7 +7,6 @@ import {
   getCssoWebpackPlugin,
   getDefinePlugin,
   getDevtool,
-  getEntry,
   getHtmlWebpackPlugin,
   getMiniCssExtractPlugin,
   getModule,
@@ -29,10 +29,12 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     publicPath = '',
     staticDirectory = 'static',
     chunkDirectory = 'chunk',
+    router = emptyObj,
 
     designWidth = 750,
     deviceRatio,
     enableSourceMap = false,
+    sourceMapType,
     enableExtract = true,
 
     defineConstants = emptyObj,
@@ -57,6 +59,8 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     }
   } = config
 
+  const isMultiRouterMode = get(router, 'mode') === 'multi'
+
   const plugin: any = {}
 
   if (enableExtract) {
@@ -70,10 +74,20 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
     plugin.copyWebpackPlugin = getCopyWebpackPlugin({ copy, appPath })
   }
 
-  plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
-    filename: 'index.html',
-    template: path.join(appPath, sourceRoot, 'index.html')
-  }])
+  if (isMultiRouterMode) {
+    merge(plugin, mapValues(entry, (filePath, entryName) => {
+      return getHtmlWebpackPlugin([{
+        filename: `${entryName}.html`,
+        template: path.join(appPath, sourceRoot, 'index.html'),
+        chunks: [entryName]
+      }])
+    }))
+  } else {
+    plugin.htmlWebpackPlugin = getHtmlWebpackPlugin([{
+      filename: 'index.html',
+      template: path.join(appPath, sourceRoot, 'index.html')
+    }])
+  }
 
   plugin.definePlugin = getDefinePlugin([processEnvOption(env), defineConstants])
 
@@ -101,8 +115,8 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
 
   chain.merge({
     mode,
-    devtool: getDevtool(enableSourceMap),
-    entry: getEntry(entry),
+    devtool: getDevtool({ enableSourceMap, sourceMapType }),
+    entry,
     output: getOutput(appPath, [{
       outputRoot,
       publicPath: addTrailingSlash(publicPath),
@@ -114,7 +128,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       deviceRatio,
       enableExtract,
       enableSourceMap,
-  
+
       styleLoaderOption,
       cssLoaderOption,
       lessLoaderOption,
@@ -124,7 +138,7 @@ export default function (appPath: string, config: Partial<BuildConfig>): any {
       imageUrlLoaderOption,
       mediaUrlLoaderOption,
       esnextModules,
-  
+
       module,
       plugins,
       staticDirectory

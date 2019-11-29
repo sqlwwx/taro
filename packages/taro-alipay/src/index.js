@@ -11,10 +11,21 @@ import {
   internal_inline_style,
   internal_get_original,
   interceptors,
+  RefsArray,
   useEffect,
   useLayoutEffect,
   useReducer,
   useState,
+  useDidShow,
+  useDidHide,
+  usePullDownRefresh,
+  useReachBottom,
+  usePageScroll,
+  useResize,
+  useShareAppMessage,
+  useTabItemTap,
+  useRouter,
+  useScope,
   useRef,
   useCallback,
   useMemo,
@@ -23,6 +34,7 @@ import {
   createContext,
   memo
 } from '@tarojs/taro'
+import { shallowEqual } from '@tarojs/utils'
 
 import Component from './component'
 import PureComponent from './pure-component'
@@ -31,6 +43,8 @@ import createComponent from './create-component'
 import initNativeApi from './native-api'
 import propsManager from './propsManager'
 import { getElementById, genCompid } from './util'
+
+if (!my.propsManager) my.propsManager = propsManager
 
 export const Taro = {
   Component,
@@ -49,20 +63,31 @@ export const Taro = {
   createComponent,
   internal_get_original,
   interceptors,
+  RefsArray,
   getElementById,
-  propsManager,
   genCompid,
   useEffect,
   useLayoutEffect,
   useReducer,
   useState,
+  useDidShow,
+  useDidHide,
+  usePullDownRefresh,
+  useReachBottom,
+  usePageScroll,
+  useResize,
+  useShareAppMessage,
+  useTabItemTap,
+  useRouter,
+  useScope,
   useRef,
   useCallback,
   useMemo,
   useImperativeHandle,
   useContext,
   createContext,
-  memo
+  memo,
+  shallowEqual
 }
 
 export default Taro

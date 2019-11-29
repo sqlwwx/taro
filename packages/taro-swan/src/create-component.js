@@ -1,6 +1,6 @@
 import { getCurrentPageUrl } from '@tarojs/utils'
-import { commitAttachRef, detachAllRef, Current } from '@tarojs/taro'
-import { isEmptyObject, isFunction } from './util'
+import { commitAttachRef, detachAllRef, Current, eventCenter } from '@tarojs/taro'
+import { isEmptyObject, isFunction, isArray } from './util'
 import { mountComponent } from './lifecycle'
 import { cacheDataGet, cacheDataHas } from './data-cache'
 import propsManager from './propsManager'
@@ -14,8 +14,23 @@ function bindProperties (weappComponentConf, ComponentClass, isPage) {
   weappComponentConf.properties.compid = {
     type: null,
     value: null,
-    observer () {
+    observer (newVal, oldVal) {
       initComponent.apply(this, [ComponentClass, isPage])
+      if (oldVal && oldVal !== newVal) {
+        const { extraProps } = this.data
+        const component = this.$component
+        propsManager.observers[newVal] = {
+          component,
+          ComponentClass: component.constructor
+        }
+        const nextProps = filterProps(component.constructor.defaultProps, propsManager.map[newVal], component.props, extraProps || null)
+        this.$component.nextProps = nextProps
+        nextTick(() => {
+          this.$component._unsafeCallUpdate = true
+          updateComponent(this.$component)
+          this.$component._unsafeCallUpdate = false
+        })
+      }
     }
   }
 }
@@ -287,6 +302,10 @@ function createComponent (ComponentClass, isPage) {
           hook.cleanup()
         }
       })
+      const events = component.$$renderPropsEvents
+      if (isArray(events)) {
+        events.forEach(e => eventCenter.off(e))
+      }
     }
   }
   if (isPage) {

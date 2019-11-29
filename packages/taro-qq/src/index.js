@@ -11,10 +11,21 @@ import {
   internal_inline_style,
   internal_get_original,
   interceptors,
+  RefsArray,
   useEffect,
   useLayoutEffect,
   useReducer,
   useState,
+  useDidShow,
+  useDidHide,
+  usePullDownRefresh,
+  useReachBottom,
+  usePageScroll,
+  useResize,
+  useShareAppMessage,
+  useTabItemTap,
+  useRouter,
+  useScope,
   useRef,
   useCallback,
   useMemo,
@@ -23,6 +34,7 @@ import {
   createContext,
   memo
 } from '@tarojs/taro'
+import { shallowEqual } from '@tarojs/utils'
 
 import Component from './component'
 import PureComponent from './pure-component'
@@ -51,13 +63,25 @@ export const Taro = {
   getElementById,
   propsManager,
   interceptors,
+  RefsArray,
   genCompid,
   // eslint-disable-next-line object-property-newline
   useEffect, useLayoutEffect, useReducer, useState, useRef, useCallback, useMemo,
+  useDidShow,
+  useDidHide,
+  usePullDownRefresh,
+  useReachBottom,
+  usePageScroll,
+  useResize,
+  useShareAppMessage,
+  useTabItemTap,
+  useRouter,
+  useScope,
   useImperativeHandle,
   useContext,
   createContext,
-  memo
+  memo,
+  shallowEqual
 }
 
 export default Taro
